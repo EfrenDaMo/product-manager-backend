@@ -133,6 +133,9 @@ class StockMovement(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ["created_at"]
+
     @override
     def __str__(self):
         return f"{self.product} ({self.delta:+d})"
