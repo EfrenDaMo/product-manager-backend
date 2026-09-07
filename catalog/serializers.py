@@ -21,9 +21,17 @@ class StockMovementSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "created_by", "created_at")
 
     def validate(self, data):
-        product = data.get("product") or self.instance.product
+        data.pop("product", None)  # product is owned by the URL, never the body
+
+        view = self.context.get("view")
+        product_id = view.kwargs.get("product_id") if view else None
+        product = Product.objects.filter(pk=product_id).first() if product_id else None
+
+        if product is None:
+            raise serializers.ValidationError({"product": "Product not found."})
         delta = data.get("delta")
-        if product and delta is not None and (product.quantity + delta) < 0:
+
+        if delta is not None and (product.quantity + delta) < 0:
             raise serializers.ValidationError("This movement would result in negative stock.")
         return data
 
